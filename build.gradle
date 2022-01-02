@@ -1,12 +1,16 @@
 plugins {
 	id 'org.springframework.boot' version '2.6.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id "com.github.ben-manes.versions" version "0.38.0"
+	id "com.adarshr.test-logger" version "3.1.0"
 	id 'application'
+	id 'checkstyle'
+	id 'jacoco'
 }
 
 group = 'hexlet.code'
 version = '1.0-SNAPSHOT'
-sourceCompatibility = '17'
+sourceCompatibility = '16'
 
 repositories {
 	mavenCentral()
@@ -25,6 +29,12 @@ application {
 
 test {
 	useJUnitPlatform()
+}
+
+jacocoTestReport {
+	reports {
+		xml.required = true
+	}
 }
 
 task stage(dependsOn: ['installDist', 'clean'])
