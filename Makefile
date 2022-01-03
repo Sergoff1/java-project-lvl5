@@ -1,11 +1,17 @@
 setup:
-	gradle wrapper --gradle-version 7.2
+	gradle wrapper --gradle-version 7.3
 
 clean:
 	./gradlew clean
 
 build:
 	./gradlew clean build
+
+start:
+	./gradlew bootRun --args='--spring.profiles.active=dev'
+
+start-prod:
+	./gradlew bootRun --args='--spring.profiles.active=prod'
 
 install:
 	./gradlew installDist
@@ -24,5 +30,11 @@ test:
 
 report:
 	./gradlew jacocoTestReport
+
+generate-migrations:
+	gradle diffChangeLog
+
+db-migrate:
+	./gradlew update
 
 .PHONY: build
