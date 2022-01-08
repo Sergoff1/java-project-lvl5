@@ -52,7 +52,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable final Long id, @RequestBody @ Valid final UserCreateDto dto) {
+    public User update(@PathVariable final Long id, @RequestBody @Valid final UserCreateDto dto) {
         final User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No users with such id"));
 

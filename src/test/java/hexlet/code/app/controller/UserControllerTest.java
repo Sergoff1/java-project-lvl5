@@ -45,7 +45,7 @@ public class UserControllerTest {
             "123456"
     );
 
-    private final String BASE_URL = "/api/users";
+    private static final String BASE_URL = "/api/users";
 
     @Test
     void getUsers() throws Exception {
