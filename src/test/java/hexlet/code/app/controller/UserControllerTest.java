@@ -180,13 +180,13 @@ public class UserControllerTest {
                 )
                 .andExpect(status().isCreated());
 
-        /*mockMvc.perform(
+        mockMvc.perform(
                     post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(testRegistrationData))
                 )
-                .andExpect(status().isUnprocessableEntity());
-        */
+                .andExpect(status().isBadRequest());
+
         Assertions.assertEquals(4, userRepository.count());
 
     }

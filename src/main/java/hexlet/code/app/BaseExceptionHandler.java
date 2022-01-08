@@ -1,6 +1,7 @@
 package hexlet.code.app;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.ObjectError;
@@ -40,6 +41,12 @@ public class BaseExceptionHandler {
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public String validationExceptionsHandler(Exception exception) {
+        return exception.getMessage();
+    }
+
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(DuplicateKeyException.class)
+    public String duplicateKeyExceptionHandler(DuplicateKeyException exception) {
         return exception.getMessage();
     }
 
