@@ -1,6 +1,3 @@
-server:
-  port: ${PORT:5000}
-
 base-url: /api
 
 spring:
