@@ -78,3 +78,7 @@ jacocoTestReport {
 		xml.required = true
 	}
 }
+
+task stage(dependsOn: ['assemble', 'clean', 'update'])
+assemble.mustRunAfter clean
+update.mustRunAfter build
