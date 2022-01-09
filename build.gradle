@@ -58,7 +58,7 @@ diffChangeLog {
 liquibase {
 	activities {
 		main {
-			changeLogFile 'src/main/resources/db/changelog/changelog-master.xml'
+			changeLogFile 'src/main/resources/db/changelog/db.changelog-master.yaml'
 			url 'jdbc:h2:./taskmgr'
 			username ''
 			password ''
@@ -78,7 +78,3 @@ jacocoTestReport {
 		xml.required = true
 	}
 }
-
-task stage(dependsOn: ['assemble', 'clean', 'update'])
-assemble.mustRunAfter clean
-update.mustRunAfter build
