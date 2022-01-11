@@ -3,7 +3,7 @@ package hexlet.code.app.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.junit5.api.DBRider;
-import hexlet.code.app.dto.UserCreateDto;
+import hexlet.code.app.dto.UserDto;
 import hexlet.code.app.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ public class UserControllerTest {
     @Autowired
     private UserRepository userRepository;
 
-    private final UserCreateDto testRegistrationData = new UserCreateDto(
+    private final UserDto testRegistrationData = new UserDto(
             "Sidr@Sidr.com",
             "Sidr",
             "Sidorov",
@@ -157,7 +157,7 @@ public class UserControllerTest {
         mockMvc.perform(
                     post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(new UserCreateDto(
+                        .content(mapper.writeValueAsString(new UserDto(
                                 "e",
                                 "",
                                 "Eg",

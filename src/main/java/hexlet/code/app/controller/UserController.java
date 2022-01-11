@@ -1,6 +1,6 @@
 package hexlet.code.app.controller;
 
-import hexlet.code.app.dto.UserCreateDto;
+import hexlet.code.app.dto.UserDto;
 import hexlet.code.app.model.User;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.service.UserServiceImpl;
@@ -48,7 +48,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@RequestBody @Valid UserCreateDto dto) {
+    public User createUser(@RequestBody @Valid UserDto dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new DuplicateKeyException("User with such email already exist");
         }
@@ -56,15 +56,11 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable final Long id, @RequestBody @Valid final UserCreateDto dto) {
+    public User update(@PathVariable final Long id, @RequestBody @Valid final UserDto dto) {
         final User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No users with such id"));
 
-        user.setEmail(dto.getEmail());
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        return userRepository.save(user);
+        return userService.updateUser(id, dto);
     }
 
     @DeleteMapping("/{id}")

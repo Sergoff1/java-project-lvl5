@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserCreateDto {
+public class UserDto {
 
     @Email
     @NotBlank
