@@ -3,3 +3,8 @@ base-url: /api
 spring:
   application:
     name: taskManager
+
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true

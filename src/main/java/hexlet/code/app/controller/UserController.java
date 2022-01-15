@@ -3,10 +3,13 @@ package hexlet.code.app.controller;
 import hexlet.code.app.dto.UserDto;
 import hexlet.code.app.model.User;
 import hexlet.code.app.repository.UserRepository;
+import hexlet.code.app.service.AuthenticationService;
 import hexlet.code.app.service.UserServiceImpl;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,18 +25,24 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static hexlet.code.app.controller.UserController.USER_CONTROLLER_PATH;
+
+@AllArgsConstructor
 @RestController
-@RequestMapping("{$base-url}" + "/users")
+@RequestMapping("{$base-url}" + USER_CONTROLLER_PATH)
 public class UserController {
 
-    @Autowired
-    private UserServiceImpl userService;
+    public static final String USER_CONTROLLER_PATH = "/users";
 
-    @Autowired
-    private UserRepository userRepository;
+    private static final String ONLY_OWNER_BY_ID = """
+            @userRepository.findById(#id).get().getEmail() == authentication.getName()
+        """;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserServiceImpl userService;
+
+    private final UserRepository userRepository;
+
+    private final AuthenticationService authenticationService;
 
     @GetMapping
     public List<User> getAll() {
@@ -48,14 +57,16 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@RequestBody @Valid UserDto dto) {
+    public String createUser(@RequestBody @Valid UserDto dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new DuplicateKeyException("User with such email already exist");
         }
-        return userService.createUser(dto);
+        userService.createUser(dto);
+        return authenticationService.login(dto.getEmail(), dto.getPassword());
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(ONLY_OWNER_BY_ID)
     public User update(@PathVariable final Long id, @RequestBody @Valid final UserDto dto) {
         final User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No users with such id"));
@@ -64,6 +75,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(ONLY_OWNER_BY_ID)
     public void delete(@PathVariable final Long id) {
         userRepository.deleteById(id);
     }
