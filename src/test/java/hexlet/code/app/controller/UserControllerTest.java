@@ -5,6 +5,7 @@ import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.junit5.api.DBRider;
 import hexlet.code.app.dto.UserDto;
 import hexlet.code.app.repository.UserRepository;
+import hexlet.code.app.utils.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +13,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,10 +33,12 @@ public class UserControllerTest {
     private ObjectMapper mapper;
 
     @Autowired
-    private MockMvc mockMvc;
+    private UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private TestUtils utils;
+
+    private static final String CONTROLLER_PATH = "/api/users";
 
     private final UserDto testRegistrationData = new UserDto(
             "Sidr@Sidr.com",
@@ -45,12 +47,9 @@ public class UserControllerTest {
             "123456"
     );
 
-    private static final String BASE_URL = "/api/users";
-
     @Test
     void getUsers() throws Exception {
-        MockHttpServletResponse response = mockMvc
-                .perform(get(BASE_URL))
+        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH))
                 .andReturn()
                 .getResponse();
 
@@ -63,22 +62,13 @@ public class UserControllerTest {
     }
 
     @Test
-    void createAndGetById() throws Exception {
+    void create() throws Exception {
         Assertions.assertEquals(3, userRepository.count());
-        MockHttpServletResponse responsePost = mockMvc
-                .perform(
-                    post(BASE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(testRegistrationData))
-                )
-                .andReturn()
-                .getResponse();
+        utils.regUser(testRegistrationData).andExpect(status().isCreated());
 
-        Assertions.assertEquals(201, responsePost.getStatus());
         Assertions.assertEquals(4, userRepository.count());
 
-        MockHttpServletResponse response = mockMvc
-                .perform(get(BASE_URL + "/4"))
+        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH))
                 .andReturn()
                 .getResponse();
 
@@ -89,8 +79,7 @@ public class UserControllerTest {
 
     @Test
     void updateUser() throws Exception {
-        MockHttpServletResponse responseOld = mockMvc
-                .perform(get(BASE_URL + "/1"))
+        MockHttpServletResponse responseOld = utils.perform(get(CONTROLLER_PATH))
                 .andReturn()
                 .getResponse();
 
@@ -99,19 +88,14 @@ public class UserControllerTest {
         Assertions.assertTrue(responseOld.getContentAsString().contains("Egor"));
         Assertions.assertFalse(responseOld.getContentAsString().contains("Sidr"));
 
-        MockHttpServletResponse responsePut = mockMvc
-                .perform(
-                        put(BASE_URL + "/1")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(testRegistrationData))
-                )
-                .andReturn()
-                .getResponse();
 
-        Assertions.assertEquals(200, responsePut.getStatus());
+        final MockHttpServletRequestBuilder request = put(CONTROLLER_PATH + "/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(testRegistrationData));
 
-        MockHttpServletResponse response = mockMvc
-                .perform(get(BASE_URL + "/1"))
+        utils.perform(request, userRepository.findById(1L).get().getEmail()).andExpect(status().isOk());
+
+        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH))
                 .andReturn()
                 .getResponse();
 
@@ -123,47 +107,36 @@ public class UserControllerTest {
 
     @Test
     void deleteUser() throws Exception {
-        MockHttpServletResponse responseOld = mockMvc
-                .perform(get(BASE_URL))
+        utils.regUser(testRegistrationData);
+
+        MockHttpServletResponse responseOld = utils.perform(get(CONTROLLER_PATH))
                 .andReturn()
                 .getResponse();
 
         Assertions.assertEquals(200, responseOld.getStatus());
         Assertions.assertEquals(MediaType.APPLICATION_JSON.toString(), responseOld.getContentType());
-        Assertions.assertTrue(responseOld.getContentAsString().contains("Egor"));
-        Assertions.assertEquals(3, userRepository.count());
+        Assertions.assertTrue(responseOld.getContentAsString().contains("Sidr"));
+        Assertions.assertEquals(4, userRepository.count());
 
-        MockHttpServletResponse responseDelete = mockMvc
-                .perform(delete(BASE_URL + "/1"))
-                .andReturn()
-                .getResponse();
+        Long userId = userRepository.findByEmail(testRegistrationData.getEmail()).get().getId();
+        utils.perform(delete(CONTROLLER_PATH + "/" + userId), testRegistrationData.getEmail())
+                        .andExpect(status().isOk());
 
-        Assertions.assertEquals(200, responseDelete.getStatus());
-
-        MockHttpServletResponse response = mockMvc
-                .perform(get(BASE_URL))
+        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH))
                 .andReturn()
                 .getResponse();
 
         Assertions.assertEquals(200, response.getStatus());
         Assertions.assertEquals(MediaType.APPLICATION_JSON.toString(), response.getContentType());
-        Assertions.assertFalse(response.getContentAsString().contains("Egor"));
-        Assertions.assertEquals(2, userRepository.count());
+        Assertions.assertFalse(response.getContentAsString().contains("Sidr"));
+        Assertions.assertEquals(3, userRepository.count());
     }
 
     @Test
     void validationTest() throws Exception {
         Assertions.assertEquals(3, userRepository.count());
-        mockMvc.perform(
-                    post(BASE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(new UserDto(
-                                "e",
-                                "",
-                                "Eg",
-                                "12"
-                        )))
-                )
+
+        utils.regUser(new UserDto("e", "", "eg", "12"))
                 .andExpect(status().isUnprocessableEntity());
 
         Assertions.assertEquals(3, userRepository.count());
@@ -173,18 +146,10 @@ public class UserControllerTest {
     void createUserWithSameCredentialsTwice() throws Exception {
         Assertions.assertEquals(3, userRepository.count());
 
-        mockMvc.perform(
-                    post(BASE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(testRegistrationData))
-                )
+        utils.regUser(testRegistrationData)
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(
-                    post(BASE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(testRegistrationData))
-                )
+        utils.regUser(testRegistrationData)
                 .andExpect(status().isBadRequest());
 
         Assertions.assertEquals(4, userRepository.count());
