@@ -1,5 +1,7 @@
 package hexlet.code.app.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.app.dto.UserDto;
 import hexlet.code.app.repository.UserRepository;
@@ -20,8 +22,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Component
 public class TestUtils {
 
+    public static final String TEST_USERNAME = "Shrek@Shrek.com";
+
+    private final UserDto testRegistrationDto = new UserDto(
+            TEST_USERNAME,
+            "Shrek",
+            "SBolot",
+            "123456"
+    );
+
     @Autowired(required = false)
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     @Autowired
     private UserRepository userRepository;
@@ -29,15 +43,16 @@ public class TestUtils {
     @Autowired
     private TokenService tokenService;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     public ResultActions regUser(final UserDto dto) throws Exception {
         final var request = post("/api/users")
                 .content(mapper.writeValueAsString(dto))
                 .contentType(APPLICATION_JSON);
 
         return perform(request);
+    }
+
+    public ResultActions regDefaultUser() throws Exception {
+        return regUser(testRegistrationDto);
     }
 
     public ResultActions perform(final MockHttpServletRequestBuilder request, final String byUser) throws Exception {
@@ -49,5 +64,15 @@ public class TestUtils {
 
     public ResultActions perform(final MockHttpServletRequestBuilder request) throws Exception {
         return mockMvc.perform(request);
+    }
+
+    private static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
+
+    public static String asJson(final Object object) throws JsonProcessingException {
+        return MAPPER.writeValueAsString(object);
+    }
+
+    public static <T> T fromJson(final String json, final TypeReference<T> to) throws JsonProcessingException {
+        return MAPPER.readValue(json, to);
     }
 }

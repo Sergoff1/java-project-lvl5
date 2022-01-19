@@ -11,11 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
+import static hexlet.code.app.utils.TestUtils.TEST_USERNAME;
+import static hexlet.code.app.utils.TestUtils.asJson;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -40,13 +42,6 @@ public class UserControllerTest {
 
     private static final String CONTROLLER_PATH = "/api/users";
 
-    private final UserDto testRegistrationData = new UserDto(
-            "Sidr@Sidr.com",
-            "Sidr",
-            "Sidorov",
-            "123456"
-    );
-
     @Test
     void getUsers() throws Exception {
         MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH))
@@ -54,7 +49,7 @@ public class UserControllerTest {
                 .getResponse();
 
         Assertions.assertEquals(200, response.getStatus());
-        Assertions.assertEquals(MediaType.APPLICATION_JSON.toString(), response.getContentType());
+        Assertions.assertEquals(APPLICATION_JSON.toString(), response.getContentType());
         Assertions.assertTrue(response.getContentAsString().contains("Egor@Egor.com"));
         Assertions.assertTrue(response.getContentAsString().contains("Petr@Petr.com"));
         Assertions.assertTrue(response.getContentAsString().contains("Ivan@Ivan.com"));
@@ -64,7 +59,7 @@ public class UserControllerTest {
     @Test
     void create() throws Exception {
         Assertions.assertEquals(3, userRepository.count());
-        utils.regUser(testRegistrationData).andExpect(status().isCreated());
+        utils.regDefaultUser().andExpect(status().isCreated());
 
         Assertions.assertEquals(4, userRepository.count());
 
@@ -73,8 +68,8 @@ public class UserControllerTest {
                 .getResponse();
 
         Assertions.assertEquals(200, response.getStatus());
-        Assertions.assertEquals(MediaType.APPLICATION_JSON.toString(), response.getContentType());
-        Assertions.assertTrue(response.getContentAsString().contains("Sidr@Sidr.com"));
+        Assertions.assertEquals(APPLICATION_JSON.toString(), response.getContentType());
+        Assertions.assertTrue(response.getContentAsString().contains("Shrek@Shrek.com"));
     }
 
     @Test
@@ -84,14 +79,15 @@ public class UserControllerTest {
                 .getResponse();
 
         Assertions.assertEquals(200, responseOld.getStatus());
-        Assertions.assertEquals(MediaType.APPLICATION_JSON.toString(), responseOld.getContentType());
+        Assertions.assertEquals(APPLICATION_JSON.toString(), responseOld.getContentType());
         Assertions.assertTrue(responseOld.getContentAsString().contains("Egor"));
         Assertions.assertFalse(responseOld.getContentAsString().contains("Sidr"));
 
+        UserDto userDto = new UserDto("Sidr@Sidr.com", "Sidr", "Sidorov", "qwerty");
 
         final MockHttpServletRequestBuilder request = put(CONTROLLER_PATH + "/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(testRegistrationData));
+                .contentType(APPLICATION_JSON)
+                .content(asJson(userDto));
 
         utils.perform(request, userRepository.findById(1L).get().getEmail()).andExpect(status().isOk());
 
@@ -100,26 +96,27 @@ public class UserControllerTest {
                 .getResponse();
 
         Assertions.assertEquals(200, response.getStatus());
-        Assertions.assertEquals(MediaType.APPLICATION_JSON.toString(), response.getContentType());
+        Assertions.assertEquals(APPLICATION_JSON.toString(), response.getContentType());
         Assertions.assertTrue(response.getContentAsString().contains("Sidr"));
         Assertions.assertFalse(response.getContentAsString().contains("Egor"));
     }
 
     @Test
     void deleteUser() throws Exception {
-        utils.regUser(testRegistrationData);
+        utils.regDefaultUser();
 
         MockHttpServletResponse responseOld = utils.perform(get(CONTROLLER_PATH))
                 .andReturn()
                 .getResponse();
 
         Assertions.assertEquals(200, responseOld.getStatus());
-        Assertions.assertEquals(MediaType.APPLICATION_JSON.toString(), responseOld.getContentType());
-        Assertions.assertTrue(responseOld.getContentAsString().contains("Sidr"));
+        Assertions.assertEquals(APPLICATION_JSON.toString(), responseOld.getContentType());
+        Assertions.assertTrue(responseOld.getContentAsString().contains("Shrek"));
         Assertions.assertEquals(4, userRepository.count());
 
-        Long userId = userRepository.findByEmail(testRegistrationData.getEmail()).get().getId();
-        utils.perform(delete(CONTROLLER_PATH + "/" + userId), testRegistrationData.getEmail())
+        Long userId = userRepository.findByEmail(TEST_USERNAME).get().getId();
+
+        utils.perform(delete(CONTROLLER_PATH + "/" + userId), TEST_USERNAME)
                         .andExpect(status().isOk());
 
         MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH))
@@ -127,8 +124,8 @@ public class UserControllerTest {
                 .getResponse();
 
         Assertions.assertEquals(200, response.getStatus());
-        Assertions.assertEquals(MediaType.APPLICATION_JSON.toString(), response.getContentType());
-        Assertions.assertFalse(response.getContentAsString().contains("Sidr"));
+        Assertions.assertEquals(APPLICATION_JSON.toString(), response.getContentType());
+        Assertions.assertFalse(response.getContentAsString().contains("Shrek"));
         Assertions.assertEquals(3, userRepository.count());
     }
 
@@ -146,14 +143,13 @@ public class UserControllerTest {
     void createUserWithSameCredentialsTwice() throws Exception {
         Assertions.assertEquals(3, userRepository.count());
 
-        utils.regUser(testRegistrationData)
+        utils.regDefaultUser()
                 .andExpect(status().isCreated());
 
-        utils.regUser(testRegistrationData)
+        utils.regDefaultUser()
                 .andExpect(status().isBadRequest());
 
         Assertions.assertEquals(4, userRepository.count());
-
     }
 }
 
