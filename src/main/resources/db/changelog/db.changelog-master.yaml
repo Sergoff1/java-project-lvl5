@@ -1,6 +1,27 @@
 databaseChangeLog:
 - changeSet:
-    id: 1641722492002-1
+    id: 1642617269854-1
+    author: Sergoff (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: task_statusesPK
+            name: id
+            type: BIGINT
+        - column:
+            name: created_at
+            type: TIMESTAMP
+        - column:
+            name: name
+            type: VARCHAR(255)
+        tableName: task_statuses
+- changeSet:
+    id: 1642617269854-2
     author: Sergoff (generated)
     changes:
     - createTable:
@@ -30,7 +51,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: users
 - changeSet:
-    id: 1641722492002-2
+    id: 1642617269854-3
     author: Sergoff (generated)
     changes:
     - addUniqueConstraint:
