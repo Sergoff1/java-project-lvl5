@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.app.dto.UserDto;
+import hexlet.code.app.model.User;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,10 @@ public class TestUtils {
 
     @Autowired
     private TokenService tokenService;
+
+    public User getUserByEmail(final String email) {
+        return userRepository.findByEmail(email).get();
+    }
 
     public ResultActions regUser(final UserDto dto) throws Exception {
         final var request = post("/api/users")

@@ -1,11 +1,14 @@
 package hexlet.code.app.controller;
 
 import hexlet.code.app.dto.UserDto;
+import hexlet.code.app.model.Task;
 import hexlet.code.app.model.User;
+import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.service.AuthenticationService;
 import hexlet.code.app.service.UserServiceImpl;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static hexlet.code.app.controller.UserController.USER_CONTROLLER_PATH;
 
@@ -41,6 +45,8 @@ public class UserController {
     private final UserRepository userRepository;
 
     private final AuthenticationService authenticationService;
+
+    private final TaskRepository taskRepository;
 
     @GetMapping
     public List<User> getAll() {
@@ -75,6 +81,10 @@ public class UserController {
     @DeleteMapping("/{id}")
     @PreAuthorize(ONLY_OWNER_BY_ID)
     public void delete(@PathVariable final Long id) {
+        Optional<Task> userTask = taskRepository.findFirst1ByAuthorIdOrExecutorId(id, id);
+        if (userTask.isPresent()) {
+        throw new DataIntegrityViolationException("Can`t delete user with existing tasks");
+        }
         userRepository.deleteById(id);
     }
 }

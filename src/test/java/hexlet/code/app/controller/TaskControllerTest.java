@@ -3,11 +3,10 @@ package hexlet.code.app.controller;
 import com.github.database.rider.core.api.configuration.DBUnit;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.junit5.api.DBRider;
-import hexlet.code.app.dto.TaskStatusDto;
-import hexlet.code.app.repository.TaskStatusRepository;
+import hexlet.code.app.dto.TaskDto;
+import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.utils.TestUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,98 +14,97 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import javax.transaction.Transactional;
-
-import static hexlet.code.app.utils.TestUtils.TEST_USERNAME;
 import static hexlet.code.app.utils.TestUtils.asJson;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc
-@Transactional
 @DBRider
 @DBUnit(alwaysCleanBefore = true)
-@DataSet("taskStatuses.yml")
-public class TaskStatusControllerTest {
+@DataSet("tasks.yml")
+public class TaskControllerTest {
 
-    private static final String CONTROLLER_PATH = "/api/statuses";
+    private static final String CONTROLLER_PATH = "/api/tasks";
+
+    private static final TaskDto TASK_DATA = new TaskDto(
+            "myTask",
+            "test task",
+            1L,
+            1L
+    );
+
+    private static final String TEST_EMAIL = "Egor@Egor.com";
 
     @Autowired
     private TestUtils utils;
 
     @Autowired
-    private TaskStatusRepository statusRepository;
-
-    @BeforeEach
-    void before() throws Exception {
-        utils.regDefaultUser();
-    }
+    private TaskRepository taskRepository;
 
     @Test
-    void createStatus() throws Exception {
-        Assertions.assertEquals(3, statusRepository.count());
+    void createTask() throws Exception {
+        Assertions.assertEquals(2, taskRepository.count());
 
         MockHttpServletRequestBuilder request = post(CONTROLLER_PATH)
                 .contentType(APPLICATION_JSON)
-                .content(asJson("archived"));
+                .content(asJson(TASK_DATA));
 
-        utils.perform(request, TEST_USERNAME).andExpect(status().isCreated());
+        utils.perform(request, TEST_EMAIL).andExpect(status().isCreated());
 
-        Assertions.assertEquals(4, statusRepository.count());
+        Assertions.assertEquals(3, taskRepository.count());
     }
 
     @Test
-    void getStatusById() throws Exception {
-        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH + "/1"), TEST_USERNAME)
+    void getTaskById() throws Exception {
+        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH + "/1"), TEST_EMAIL)
                 .andReturn()
                 .getResponse();
 
         Assertions.assertEquals(200, response.getStatus());
-        Assertions.assertTrue(response.getContentAsString().contains("new"));
+        Assertions.assertTrue(response.getContentAsString().contains("taskOne"));
     }
 
     @Test
-    void getAllStatuses() throws Exception {
-        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH), TEST_USERNAME)
+    void getAllTasks() throws Exception {
+        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH), TEST_EMAIL)
                 .andReturn()
                 .getResponse();
 
         Assertions.assertEquals(200, response.getStatus());
-        Assertions.assertTrue(response.getContentAsString().contains("new"));
-        Assertions.assertTrue(response.getContentAsString().contains("finished"));
-        Assertions.assertTrue(response.getContentAsString().contains("at work"));
+        Assertions.assertTrue(response.getContentAsString().contains("taskOne"));
+        Assertions.assertTrue(response.getContentAsString().contains("taskTwo"));
     }
 
     @Test
-    void updateStatus() throws Exception {
+    void updateTask() throws Exception {
         MockHttpServletRequestBuilder request = put(CONTROLLER_PATH + "/1")
                 .contentType(APPLICATION_JSON)
-                .content(asJson("start"));
+                .content(asJson(TASK_DATA));
 
-        utils.perform(request, TEST_USERNAME).andExpect(status().isOk());
+        utils.perform(request, TEST_EMAIL).andExpect(status().isOk());
 
-        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH), TEST_USERNAME)
+        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH), TEST_EMAIL)
                 .andReturn()
                 .getResponse();
 
         Assertions.assertEquals(200, response.getStatus());
-        Assertions.assertFalse(response.getContentAsString().contains("new"));
-        Assertions.assertTrue(response.getContentAsString().contains("start"));
+        Assertions.assertTrue(response.getContentAsString().contains("myTask"));
+        Assertions.assertFalse(response.getContentAsString().contains("TaskOne"));
     }
 
     @Test
-    void deleteStatus() throws Exception {
-        Assertions.assertEquals(3, statusRepository.count());
+    void deleteTask() throws Exception {
+        Assertions.assertEquals(2, taskRepository.count());
 
-        utils.perform(delete(CONTROLLER_PATH + "/1"), TEST_USERNAME).andExpect(status().isOk());
+        utils.perform(delete(CONTROLLER_PATH + "/1"), TEST_EMAIL).andExpect(status().isOk());
 
-        Assertions.assertEquals(2, statusRepository.count());
+        Assertions.assertEquals(1, taskRepository.count());
     }
 
     @Test
@@ -117,27 +115,37 @@ public class TaskStatusControllerTest {
 
         MockHttpServletRequestBuilder request = post(CONTROLLER_PATH)
                 .contentType(APPLICATION_JSON)
-                .content(asJson("stat"));
+                .content(asJson(TASK_DATA));
 
         utils.perform(request).andExpect(status().isUnauthorized());
 
         MockHttpServletRequestBuilder requestPut = put(CONTROLLER_PATH + "/1")
                 .contentType(APPLICATION_JSON)
-                .content(asJson("stat"));
+                .content(asJson(TASK_DATA));
 
         utils.perform(requestPut).andExpect(status().isUnauthorized());
     }
 
     @Test
     void validationTest() throws  Exception {
-        Assertions.assertEquals(3, statusRepository.count());
+        Assertions.assertEquals(2, taskRepository.count());
 
         MockHttpServletRequestBuilder request = post(CONTROLLER_PATH)
                 .contentType(APPLICATION_JSON)
-                .content(asJson(new TaskStatusDto("")));
+                .content(asJson(new TaskDto()));
 
-        utils.perform(request, TEST_USERNAME).andExpect(status().isUnprocessableEntity());
+        utils.perform(request, TEST_EMAIL).andExpect(status().isUnprocessableEntity());
 
-        Assertions.assertEquals(3, statusRepository.count());
+        Assertions.assertEquals(2, taskRepository.count());
+    }
+
+    @Test
+    void deleteUserAndStatusAssociatedWithTask() throws Exception {
+
+        utils.perform(delete("/api/users/1"), TEST_EMAIL)
+                .andExpect(status().isUnprocessableEntity());
+
+        utils.perform(delete("/api/statuses/1"), TEST_EMAIL)
+                .andExpect(status().isUnprocessableEntity());
     }
 }

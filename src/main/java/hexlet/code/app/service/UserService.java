@@ -8,4 +8,8 @@ public interface UserService {
     User createUser(UserDto registrationData);
 
     User updateUser(Long id, UserDto newData);
+
+    String getCurrentUserName();
+
+    User getCurrentUser();
 }
