@@ -59,7 +59,7 @@ public class BaseExceptionHandler {
     @ResponseStatus(UNPROCESSABLE_ENTITY)
     @ExceptionHandler(DataIntegrityViolationException.class)
     public String validationExceptionsHandler(DataIntegrityViolationException exception) {
-        return exception.getCause().getCause().getMessage();
+        return exception.getMessage();
     }
 
     @ResponseStatus(FORBIDDEN)
@@ -70,7 +70,7 @@ public class BaseExceptionHandler {
 
     @ResponseStatus(UNAUTHORIZED)
     @ExceptionHandler(UsernameNotFoundException.class)
-    public String userNitFoundExceptionHandler(UsernameNotFoundException exception) {
+    public String userNotFoundExceptionHandler(UsernameNotFoundException exception) {
         return exception.getMessage();
     }
 }
