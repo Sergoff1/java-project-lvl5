@@ -98,7 +98,7 @@ public class LabelControllerTest {
     void deleteLabel() throws Exception {
         Assertions.assertEquals(3, labelRepository.count());
 
-        utils.perform(delete(CONTROLLER_PATH + "/1"), TEST_EMAIL).andExpect(status().isOk());
+        utils.perform(delete(CONTROLLER_PATH + "/2"), TEST_EMAIL).andExpect(status().isOk());
 
         Assertions.assertEquals(2, labelRepository.count());
     }

@@ -44,6 +44,13 @@ tasks:
     author_id: 2
     executor_id: 1
     created_at: 2022-01-04T13:15:17.173Z
+  - id: 3
+    name: taskFilter
+    description: for filter
+    task_status_id: 3
+    author_id: 3
+    executor_id: 3
+    created_at: 2022-01-09T11:15:17.173Z
 
 labels:
   - id: 1
@@ -55,3 +62,7 @@ labels:
   - id: 3
     name: urgent
     created_at: 2022-01-08T11:15:17.173Z
+
+tasks_labels:
+  - task_id: 2
+    labels_id: 1

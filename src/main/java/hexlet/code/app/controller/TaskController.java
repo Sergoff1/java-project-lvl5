@@ -1,10 +1,12 @@
 package hexlet.code.app.controller;
 
+import com.querydsl.core.types.Predicate;
 import hexlet.code.app.dto.TaskDto;
 import hexlet.code.app.model.Task;
 import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.service.TaskService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,7 +20,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import static hexlet.code.app.controller.TaskController.TASK_CONTROLLER_PATH;
@@ -40,8 +41,8 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    public List<Task> getAll() {
-        return taskRepository.findAll();
+    public Iterable<Task> getAll(@QuerydslPredicate(root = Task.class) Predicate predicate) {
+        return taskRepository.findAll(predicate);
     }
 
     @GetMapping(path = "/{id}")

@@ -51,7 +51,7 @@ public class TaskControllerTest {
 
     @Test
     void createTask() throws Exception {
-        Assertions.assertEquals(2, taskRepository.count());
+        Assertions.assertEquals(3, taskRepository.count());
 
         MockHttpServletRequestBuilder request = post(CONTROLLER_PATH)
                 .contentType(APPLICATION_JSON)
@@ -59,7 +59,7 @@ public class TaskControllerTest {
 
         utils.perform(request, TEST_EMAIL).andExpect(status().isCreated());
 
-        Assertions.assertEquals(3, taskRepository.count());
+        Assertions.assertEquals(4, taskRepository.count());
     }
 
     @Test
@@ -84,6 +84,30 @@ public class TaskControllerTest {
     }
 
     @Test
+    void getAllByFilter() throws Exception {
+        final String authorFilter = "?authorId=3";
+        MockHttpServletResponse response = utils.perform(get(CONTROLLER_PATH + authorFilter), TEST_EMAIL)
+                .andReturn()
+                .getResponse();
+
+        Assertions.assertEquals(200, response.getStatus());
+        Assertions.assertTrue(response.getContentAsString().contains("taskFilter"));
+        Assertions.assertFalse(response.getContentAsString().contains("taskOne"));
+        Assertions.assertFalse(response.getContentAsString().contains("taskTwo"));
+
+        final String labelAndExecutorFilter = "?labels=1&executorId=1";
+        MockHttpServletResponse labelResponse = utils.perform(
+                get(CONTROLLER_PATH + labelAndExecutorFilter), TEST_EMAIL)
+                .andReturn()
+                .getResponse();
+
+        Assertions.assertEquals(200, labelResponse.getStatus());
+        Assertions.assertTrue(labelResponse.getContentAsString().contains("taskTwo"));
+        Assertions.assertFalse(labelResponse.getContentAsString().contains("taskOne"));
+        Assertions.assertFalse(labelResponse.getContentAsString().contains("taskFilter"));
+    }
+
+    @Test
     void updateTask() throws Exception {
         MockHttpServletRequestBuilder request = put(CONTROLLER_PATH + "/1")
                 .contentType(APPLICATION_JSON)
@@ -102,11 +126,11 @@ public class TaskControllerTest {
 
     @Test
     void deleteTask() throws Exception {
-        Assertions.assertEquals(2, taskRepository.count());
+        Assertions.assertEquals(3, taskRepository.count());
 
         utils.perform(delete(CONTROLLER_PATH + "/1"), TEST_EMAIL).andExpect(status().isOk());
 
-        Assertions.assertEquals(1, taskRepository.count());
+        Assertions.assertEquals(2, taskRepository.count());
     }
 
     @Test
@@ -130,7 +154,7 @@ public class TaskControllerTest {
 
     @Test
     void validationTest() throws  Exception {
-        Assertions.assertEquals(2, taskRepository.count());
+        Assertions.assertEquals(3, taskRepository.count());
 
         MockHttpServletRequestBuilder request = post(CONTROLLER_PATH)
                 .contentType(APPLICATION_JSON)
@@ -138,7 +162,7 @@ public class TaskControllerTest {
 
         utils.perform(request, TEST_EMAIL).andExpect(status().isUnprocessableEntity());
 
-        Assertions.assertEquals(2, taskRepository.count());
+        Assertions.assertEquals(3, taskRepository.count());
     }
 
     @Test
