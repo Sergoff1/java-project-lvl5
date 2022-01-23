@@ -44,3 +44,14 @@ tasks:
     author_id: 2
     executor_id: 1
     created_at: 2022-01-04T13:15:17.173Z
+
+labels:
+  - id: 1
+    name: feature
+    created_at: 2022-01-06T11:15:17.173Z
+  - id: 2
+    name: bug
+    created_at: 2022-01-08T11:15:17.173Z
+  - id: 3
+    name: urgent
+    created_at: 2022-01-08T11:15:17.173Z

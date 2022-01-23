@@ -131,3 +131,68 @@ databaseChangeLog:
         referencedTableName: users
         validate: true
 
+- changeSet:
+    id: 1642935510093-1
+    author: Sergoff (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: labelsPK
+            name: id
+            type: BIGINT
+        - column:
+            name: created_at
+            type: TIMESTAMP
+        - column:
+            name: name
+            type: VARCHAR(255)
+        tableName: labels
+- changeSet:
+    id: 1642935510093-2
+    author: Sergoff (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: task_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: labels_id
+            type: BIGINT
+        tableName: tasks_labels
+- changeSet:
+    id: 1642935510093-3
+    author: Sergoff (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: labels_id
+        baseTableName: tasks_labels
+        constraintName: FK1jqo1eikgg8xnhi58yp81b8nl
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: labels
+        validate: true
+- changeSet:
+    id: 1642935510093-4
+    author: Sergoff (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: task_id
+        baseTableName: tasks_labels
+        constraintName: FK9qrs86gyw7ctgqiwqvr9jkf0l
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: tasks
+        validate: true
+
