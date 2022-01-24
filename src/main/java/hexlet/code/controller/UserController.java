@@ -86,15 +86,15 @@ public class UserController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String createUser(
+    public User createUser(
             @Parameter(description = "Data of User to be created", required = true)
             @RequestBody @Valid UserDto dto) {
 
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new DuplicateKeyException("User with such email already exist");
         }
-        userService.createUser(dto);
-        return authenticationService.login(dto.getEmail(), dto.getPassword());
+
+        return userService.createUser(dto);
     }
 
     @Operation(summary = "Update User")
