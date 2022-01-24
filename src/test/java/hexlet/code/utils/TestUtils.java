@@ -1,4 +1,4 @@
-package hexlet.code.app.utils;
+package hexlet.code.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
