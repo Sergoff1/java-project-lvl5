@@ -7,6 +7,12 @@ import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.service.AuthenticationService;
 import hexlet.code.app.service.UserServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
@@ -31,7 +37,7 @@ import static hexlet.code.app.controller.UserController.USER_CONTROLLER_PATH;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("{$base-url}" + USER_CONTROLLER_PATH)
+@RequestMapping("${base-url}" + USER_CONTROLLER_PATH)
 public class UserController {
 
     public static final String USER_CONTROLLER_PATH = "/users";
@@ -48,20 +54,42 @@ public class UserController {
 
     private final TaskRepository taskRepository;
 
+    @Operation(summary = "Get list of All Users")
+    @ApiResponse(responseCode = "200", description = "List of all Users", content =
+        @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)))
     @GetMapping
     public List<User> getAll() {
         return userRepository.findAll();
     }
 
+    @Operation(summary = "Get specific User by his id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User found", content =
+                @Content(mediaType = "application/json", schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "404", description = "No Users with such id")
+    })
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable final Long id) {
+    public User getUserById(
+            @Parameter(description = "Id of User to be found", required = true)
+            @PathVariable final Long id) {
+
         return userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No users with such id"));
     }
 
+    @Operation(summary = "Create new User")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User created", content =
+                @Content(mediaType = "application/json", schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "422", description = "Data validation failed", content =
+                @Content(mediaType = "application/json"))
+    })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String createUser(@RequestBody @Valid UserDto dto) {
+    public String createUser(
+            @Parameter(description = "Data of User to be created", required = true)
+            @RequestBody @Valid UserDto dto) {
+
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new DuplicateKeyException("User with such email already exist");
         }
@@ -69,21 +97,41 @@ public class UserController {
         return authenticationService.login(dto.getEmail(), dto.getPassword());
     }
 
+    @Operation(summary = "Update User")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User updated", content =
+                @Content(mediaType = "application/json", schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "422", description = "Data validation failed"),
+            @ApiResponse(responseCode = "404", description = "No Users with such id")
+    })
     @PutMapping("/{id}")
     @PreAuthorize(ONLY_OWNER_BY_ID)
-    public User update(@PathVariable final Long id, @RequestBody @Valid final UserDto dto) {
+    public User update(
+            @Parameter(description = "Id of User to be updated", required = true)
+            @PathVariable final Long id,
+            @Parameter(description = "User data to save", required = true)
+            @RequestBody @Valid final UserDto dto) {
+
         final User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No users with such id"));
 
         return userService.updateUser(id, dto);
     }
 
+    @Operation(summary = "Delete User")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User deleted"),
+            @ApiResponse(responseCode = "404", description = "No Users with such id")
+    })
     @DeleteMapping("/{id}")
     @PreAuthorize(ONLY_OWNER_BY_ID)
-    public void delete(@PathVariable final Long id) {
+    public void delete(
+            @Parameter(description = "Id of User to be deleted", required = true)
+            @PathVariable final Long id) {
+
         Optional<Task> userTask = taskRepository.findFirst1ByAuthorIdOrExecutorId(id, id);
         if (userTask.isPresent()) {
-        throw new DataIntegrityViolationException("Can`t delete user with existing tasks");
+            throw new DataIntegrityViolationException("Can`t delete user with existing tasks");
         }
         userRepository.deleteById(id);
     }
