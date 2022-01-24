@@ -38,14 +38,17 @@ public class TaskServiceImpl implements TaskService {
 
         final User author = userService.getCurrentUser();
         final TaskStatus status = statusRepository.getById(taskData.getTaskStatusId());
-        final User executor = userRepository.getById(taskData.getExecutorId());
         final List<Label> labels = labelRepository.findAllById(taskData.getLabelIds());
+
+        final Long executorId = taskData.getExecutorId();
+        if (executorId != null) {
+            task.setExecutor(userRepository.getById(executorId));
+        }
 
         task.setName(taskData.getName());
         task.setDescription(taskData.getDescription());
         task.setTaskStatus(status);
         task.setAuthor(author);
-        task.setExecutor(executor);
         task.setLabels(labels);
         return taskRepository.save(task);
     }
@@ -55,13 +58,16 @@ public class TaskServiceImpl implements TaskService {
         final Task task = taskRepository.getById(id);
 
         final TaskStatus status = statusRepository.getById(newTaskData.getTaskStatusId());
-        final User executor = userRepository.getById(newTaskData.getExecutorId());
         final List<Label> labels = labelRepository.findAllById(newTaskData.getLabelIds());
+
+        final Long executorId = newTaskData.getExecutorId();
+        if (executorId != null) {
+            task.setExecutor(userRepository.getById(executorId));
+        }
 
         task.setName(newTaskData.getName());
         task.setDescription(newTaskData.getDescription());
         task.setTaskStatus(status);
-        task.setExecutor(executor);
         task.setLabels(labels);
         return taskRepository.save(task);
     }
