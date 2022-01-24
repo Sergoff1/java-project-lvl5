@@ -1,4 +1,4 @@
-package hexlet.code;
+package hexlet.code.app;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
