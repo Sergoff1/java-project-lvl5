@@ -2,9 +2,7 @@ package hexlet.code.controller;
 
 import hexlet.code.dto.LabelDto;
 import hexlet.code.model.Label;
-import hexlet.code.model.Task;
 import hexlet.code.repository.LabelRepository;
-import hexlet.code.repository.TaskRepository;
 import hexlet.code.service.LabelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,7 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,8 +38,6 @@ public class LabelController {
     private final LabelService labelService;
 
     private final LabelRepository labelRepository;
-
-    private final TaskRepository taskRepository;
 
     @Operation(summary = "Get list of All Labels")
     @ApiResponse(responseCode = "200", description = "List of all Labels", content =
@@ -110,13 +105,6 @@ public class LabelController {
             @Parameter(description = "Id of Label to be deleted", required = true)
             @PathVariable Long id) {
 
-        final Label label = labelRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No labels with such id"));
-        List<Task> tasksWithCurrentLabel = taskRepository.findByLabels(label);
-
-        if (!tasksWithCurrentLabel.isEmpty()) {
-            throw new DataIntegrityViolationException("Unable to delete the label associated with an existing task");
-        }
-        labelRepository.deleteById(id);
+        labelService.deleteLabel(id);
     }
 }

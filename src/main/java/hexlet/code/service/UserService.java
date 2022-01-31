@@ -9,6 +9,8 @@ public interface UserService {
 
     User updateUser(Long id, UserDto newData);
 
+    void deleteUser(Long id);
+
     String getCurrentUserName();
 
     User getCurrentUser();

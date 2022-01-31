@@ -8,4 +8,6 @@ public interface TaskStatusService {
     TaskStatus createStatus(TaskStatusDto statusData);
 
     TaskStatus updateStatus(Long id, TaskStatusDto statusData);
+
+    void deleteStatus(Long id);
 }

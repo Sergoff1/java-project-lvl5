@@ -1,11 +1,8 @@
 package hexlet.code.controller;
 
 import hexlet.code.dto.UserDto;
-import hexlet.code.model.Task;
 import hexlet.code.model.User;
-import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
-import hexlet.code.service.AuthenticationService;
 import hexlet.code.service.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,7 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static hexlet.code.controller.UserController.USER_CONTROLLER_PATH;
 
@@ -49,10 +44,6 @@ public class UserController {
     private final UserServiceImpl userService;
 
     private final UserRepository userRepository;
-
-    private final AuthenticationService authenticationService;
-
-    private final TaskRepository taskRepository;
 
     @Operation(summary = "Get list of All Users")
     @ApiResponse(responseCode = "200", description = "List of all Users", content =
@@ -129,10 +120,6 @@ public class UserController {
             @Parameter(description = "Id of User to be deleted", required = true)
             @PathVariable final Long id) {
 
-        Optional<Task> userTask = taskRepository.findFirst1ByAuthorIdOrExecutorId(id, id);
-        if (userTask.isPresent()) {
-            throw new DataIntegrityViolationException("Can`t delete user with existing tasks");
-        }
-        userRepository.deleteById(id);
+        userService.deleteUser(id);
     }
 }

@@ -8,4 +8,6 @@ public interface LabelService {
     Label createLabel(LabelDto labelData);
 
     Label updateLabel(Long id, LabelDto labelData);
+
+    void deleteLabel(Long id);
 }
